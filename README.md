@@ -11,22 +11,22 @@ A full-stack web application that allows users to upload insurance policy docume
 - **Responsive Design**: Works on desktop and mobile devices
 - **Real-time Updates**: Live upload progress and processing status
 
-### Backend (FastAPI + LangChain + Python)
+### Backend (FastAPI + LangGraph + Python)
 - **Document Processing**: LangChain-powered PDF/TXT extraction with metadata
 - **Smart Chunking**: RecursiveCharacterTextSplitter for optimal text segmentation
 - **Vector Search**: LangChain FAISS integration with persistent storage
-- **RAG Pipeline**: End-to-end LangChain QA chains for accurate answers
-- **LLM Integration**: LangChain + OpenAI GPT-3.5-turbo with fallback responses
+- **RAG Pipeline**: LangGraph workflows with conversation memory and session management
+- **LLM Integration**: Groq-hosted Qwen (primary) + OpenAI GPT-4o-mini (fallback)
 - **RESTful API**: Well-documented endpoints with automatic docs
 
 ## 🏗️ Architecture
 
 ```
-Frontend (React)     →     Backend (FastAPI + LangChain)     →     Vector DB (FAISS)
+Frontend (React)     →     Backend (FastAPI + LangGraph)     →     Vector DB (FAISS)
      ↓                                    ↓                              ↓
 - File Upload        →     - LangChain Document Loaders      →     - HuggingFace Embeddings
-- Chat Interface     →     - RecursiveCharacterTextSplitter  →     - LangChain FAISS Store
-- Sources Display    →     - LangChain QA Chains             →     - Similarity Search + LLM
+- Chat Interface     →     - RecursiveCharacterTextSplitter  →     - LangGraph Workflows
+- Sources Display    →     - Groq Qwen LLM + OpenAI Fallback →     - Similarity Search + LLM
 ```
 
 ## 📋 Prerequisites
@@ -63,8 +63,10 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Create configuration file (optional)
-cp .env.example .env
-# Edit .env to add your OpenAI API key (optional)
+nano .env
+# Edit .env to add your API keys:
+#   GROQ_API_KEY=<your_groq_key>   # primary (Groq Qwen)
+#   OPENAI_API_KEY=<your_openai_key> # optional fallback
 ```
 
 ### 3. Frontend Setup
@@ -88,7 +90,7 @@ cd server
 source venv/bin/activate
 
 # Start the backend server
-python start.py
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The backend will be available at `http://localhost:8000`
@@ -112,58 +114,6 @@ Once the backend is running, you can access:
 - **ReDoc**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/
 
-## 🧪 Testing
-
-### Backend Testing
-
-```bash
-cd server
-
-# Run the test script
-python test_backend.py
-```
-
-This will test:
-- Health check endpoint
-- File upload functionality
-- Document processing
-- Chat query processing
-
-### Frontend Testing
-
-```bash
-cd frontend
-
-# Run React tests
-npm test
-```
-
-## 🔧 Configuration
-
-### Backend Configuration (.env)
-
-```env
-# Optional: OpenAI API Key for enhanced responses
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Server settings
-HOST=0.0.0.0
-PORT=8000
-DEBUG=True
-
-# CORS origins
-CORS_ORIGINS=http://localhost:3000
-
-# RAG configuration
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-```
-
-### Frontend Configuration
-
-The frontend is configured to connect to the backend at `http://localhost:8000`. If you need to change this, update the API URLs in `frontend/src/App.tsx`.
-
 ## 📁 Project Structure
 
 ```
@@ -177,13 +127,14 @@ meet-minutes/
 ├── server/                   # FastAPI backend
 │   ├── services/            # Business logic
 │   │   ├── document_processor.py
-│   │   └── rag_service.py
+│   │   ├── rag_service.py
+│   │   ├── graph_builder.py # LangGraph workflows
+│   │   └── vector_store_manager.py
 │   ├── models/              # Data models
 │   │   └── schemas.py
 │   ├── main.py              # FastAPI application
 │   ├── config.py            # Configuration
-│   ├── start.py             # Startup script
-│   ├── test_backend.py      # Test script
+│   ├── env.template         # Environment template
 │   └── requirements.txt
 └── README.md
 ```
@@ -196,25 +147,17 @@ meet-minutes/
 4. **Ask questions**: Type questions about your insurance policies
 5. **View sources**: Check the "Sources" tab to see document excerpts used
 
-### Example Questions
-
-- "What is the deductible for flood damage?"
-- "What are the coverage limits for personal property?"
-- "How do I file a claim?"
-- "What exclusions are listed in my policy?"
-- "What is the policy renewal date?"
-
 ## 🎯 Key Design Decisions
 
 ### Backend Choices
 
 1. **FastAPI**: Fast, modern Python web framework with automatic API docs
-2. **LangChain**: Comprehensive RAG framework with standardized interfaces
+2. **LangGraph**: State-based conversation workflows with built-in persistence
 3. **HuggingFace Embeddings**: Efficient embedding generation for semantic search
 4. **LangChain FAISS**: High-performance vector search with persistence
 5. **LangChain Document Loaders**: Robust PDF/TXT processing with metadata
-6. **LangChain QA Chains**: Streamlined question-answering pipeline
-7. **OpenAI GPT-3.5**: High-quality answer generation with fallback options
+6. **Groq Qwen LLM**: Ultra-fast, cost-effective open-source model
+7. **OpenAI GPT-4o**: Reliable fallback for answer generation
 
 ### Frontend Choices
 
@@ -228,7 +171,8 @@ meet-minutes/
 - **Local vs. Cloud**: FAISS for local deployment vs. cloud vector databases
 - **Model Size**: Smaller embedding model for speed vs. larger for accuracy
 - **Processing**: Async document processing for better UX
-- **LLM**: OpenAI for quality vs. local models for privacy
+- **LLM**: Groq Qwen for speed/cost vs. OpenAI for reliability
+- **Conversation**: LangGraph workflows vs. simple QA chains
 
 ## 🛡️ Security Features
 
@@ -238,81 +182,11 @@ meet-minutes/
 - Input sanitization and validation
 - Error handling without sensitive data exposure
 
-## 🚀 Deployment
-
-### Backend Deployment
-
-```bash
-# Production mode
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-### Frontend Deployment
-
-```bash
-# Build for production
-npm run build
-
-# Deploy the build folder to your hosting service
-```
-
-### Docker Support (Optional)
-
-```dockerfile
-# Backend Dockerfile example
-FROM python:3.11
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-1. **Backend won't start**:
-   - Check Python version (3.10+ required)
-   - Ensure virtual environment is activated
-   - Install dependencies: `pip install -r requirements.txt`
-
-2. **Frontend won't start**:
-   - Check Node.js version (16+ required)
-   - Install dependencies: `npm install`
-   - Clear cache: `npm start -- --reset-cache`
-
-3. **CORS errors**:
-   - Ensure backend is running on port 8000
-   - Check CORS_ORIGINS in backend configuration
-
-4. **Upload failures**:
-   - Check file size (max 10MB)
-   - Ensure file type is PDF or TXT
-   - Check backend console for detailed errors
-
-5. **Chat not working**:
-   - Ensure documents are uploaded and processed
-   - Check backend logs for processing status
-   - Verify embedding model download completed
-
 ### Performance Tips
 
 - **Memory**: Reduce chunk size for lower memory usage
 - **Speed**: Use smaller embedding models for faster processing
 - **Storage**: Regular cleanup of uploaded files and vector store
-
-## 📈 Future Enhancements
-
-### Planned Features
-
-1. **Authentication**: User accounts and document privacy
-2. **Advanced Chunking**: Recursive text splitting strategies
-3. **Multiple LLMs**: Support for local models (Ollama, etc.)
-4. **Better Vector DB**: Migration to ChromaDB or Pinecone
-5. **Caching**: Redis for embedding and response caching
-6. **Monitoring**: Logging, metrics, and health monitoring
-7. **Batch Processing**: Multiple document upload optimization
 
 ### Technical Improvements
 
@@ -321,27 +195,3 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 - Real-time processing status updates
 - Advanced search filters and sorting
 - Document versioning and history
-
-## 📄 License
-
-This project is developed as part of a technical assessment for insurance policy Q&A functionality.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📧 Support
-
-For questions or issues:
-1. Check the troubleshooting section
-2. Review the API documentation
-3. Check console outputs for detailed error messages
-4. Test with the provided test script
-
----
-
-**Happy coding! 🎉** 
