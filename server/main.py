@@ -35,21 +35,64 @@ document_processor = DocumentProcessor(
 rag_service = RAGService(
     embedding_model=Config.EMBEDDING_MODEL,
     vector_db_path=Config.VECTOR_DB_PATH,
-    openai_api_key=Config.OPENAI_API_KEY
+    api_key=Config.GROQ_API_KEY
 )
 
 # Storage directories
 os.makedirs(Config.UPLOAD_DIR, exist_ok=True)
 
+# Run RAG initialization in the background so the server can start listening immediately.
+init_task: asyncio.Task | None = None
+
+
 @app.on_event("startup")
 async def startup_event():
-    """Initialize services on startup"""
-    await rag_service.initialize()
+    """Kick-off background initialization of heavy RAG components"""
+    global init_task
+    print("🚀 Scheduling RAG service initialization in background…")
+
+    async def _init():
+        try:
+            await rag_service.initialize()
+            print("✅ RAG service initialized successfully! Ready to accept queries.")
+        except Exception as e:
+            print(f"❌ RAG service failed to initialize: {e}")
+
+    init_task = asyncio.create_task(_init())
+    print("🌐 FastAPI server is up – waiting for RAG background init to finish.")
 
 @app.get("/")
 async def root():
     """Health check endpoint"""
-    return {"message": "Insurance Policy Q&A API is running"}
+    return {
+        "message": "Insurance Policy Q&A API is running",
+        "status": "healthy",
+        "host": Config.HOST,
+        "port": Config.PORT,
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.get("/health")
+async def health_check():
+    """Detailed health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "RAG API",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "config": {
+            "host": Config.HOST,
+            "port": Config.PORT,
+            "debug": Config.DEBUG,
+            "has_documents": rag_service.has_documents(),
+            "rag_initialized": rag_service.is_initialized
+        }
+    }
+
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint for quick health checks"""
+    return {"message": "pong", "rag_initialized": rag_service.is_initialized, "timestamp": datetime.now().isoformat()}
 
 @app.post("/upload", response_model=UploadResponse)
 async def upload_documents(files: List[UploadFile] = File(...)):
@@ -253,4 +296,13 @@ async def delete_document(document_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host=Config.HOST, port=Config.PORT, reload=Config.DEBUG) 
+    print(f"Starting server on {Config.HOST}:{Config.PORT}")
+    print(f"Binding to: 0.0.0.0:8000")
+    uvicorn.run(
+        app, 
+        host="0.0.0.0",  # Force explicit binding
+        port=8000,        # Force explicit port
+        reload=Config.DEBUG,
+        log_level="info",
+        access_log=True
+    ) 

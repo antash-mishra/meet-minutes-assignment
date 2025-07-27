@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 from langchain_openai import ChatOpenAI
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain.schema import Document, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
@@ -23,7 +24,7 @@ class GraphBuilder:
     Builds and manages LangGraph workflows for RAG conversations with built-in persistence
     """
     
-    def __init__(self, llm: ChatOpenAI, retriever=None):
+    def __init__(self, llm: BaseChatModel, retriever=None):
         self.llm = llm
         self.retriever = retriever
         self.session_graphs = {}  # Store LangGraph instances per session
@@ -40,7 +41,7 @@ class GraphBuilder:
         ])
         
         qa_prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.\n\n{context}"),
+            ("system", "You are an experienced insurance policy analyst and advisor. Your expertise includes interpreting policy terms, coverage details, deductibles, exclusions, and claim procedures. Use the following retrieved context from insurance documents to provide accurate, professional answers. Always cite specific policy sections when possible. If information is not available in the provided context, clearly state 'This information is not available in the uploaded documents.' Keep responses clear and professional, using 2-4 sentences.\n\n{context}"),
             MessagesPlaceholder("chat_history"),
             ("human", "{question}"),
         ])

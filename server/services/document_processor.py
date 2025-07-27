@@ -13,7 +13,7 @@ class DocumentProcessor:
     Handles document loading and intelligent chunking with LangChain loaders and splitters
     """
     
-    def __init__(self, chunk_size: int = 1000, overlap: int = 200):
+    def __init__(self, chunk_size: int = 512, overlap: int = 50):
         self.chunk_size = chunk_size
         self.overlap = overlap
         
@@ -22,7 +22,7 @@ class DocumentProcessor:
             chunk_size=chunk_size,
             chunk_overlap=overlap,
             length_function=len,
-            separators=["\n\n", "\n", ". ", " ", ""]
+            separators=["\n\n", "\n", ". ", "! ", "? ", " "]
         )
     
     async def load_documents(self, file_path: str) -> List[Document]:

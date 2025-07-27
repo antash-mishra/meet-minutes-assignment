@@ -32,7 +32,11 @@ class VectorStoreManager:
             # Initialize embeddings
             self.embeddings = HuggingFaceEmbeddings(
                 model_name=self.embedding_model_name,
-                model_kwargs={"device": "cpu"}
+                model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
+                encode_kwargs={
+                    'normalize_embeddings': True,
+                    'batch_size': 8 # Smaller batches for CPU to avoid memory issues
+                } 
             )
             print(f"Loaded embedding model: {self.embedding_model_name}")
             

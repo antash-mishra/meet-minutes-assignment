@@ -2,6 +2,7 @@ import os
 from typing import List, Dict, Tuple
 import asyncio
 from langchain_openai import ChatOpenAI
+from langchain.chat_models import init_chat_model
 from langchain.schema import Document
 from langchain_core.runnables.config import RunnableConfig
 
@@ -17,7 +18,7 @@ class RAGService:
     def __init__(self, 
                  embedding_model: str = "Qwen/Qwen3-Embedding-4B",
                  vector_db_path: str = "vector_store",
-                 openai_api_key: str = None):
+                 api_key: str = None):
         
         # Initialize components
         self.vector_store_manager = VectorStoreManager(embedding_model, vector_db_path)
@@ -26,16 +27,11 @@ class RAGService:
         # (Assuming ChatOpenAI is imported or handled within GraphBuilder)
         import os
         
-        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        api_key = api_key or os.getenv("GROQ_API_KEY")
         self.llm = None
         if api_key:
             try:
-                self.llm = ChatOpenAI(
-                    api_key=api_key,
-                    model="gpt-4o-mini",
-                    temperature=0.3,
-                    max_tokens=500
-                )
+                self.llm = init_chat_model("qwen/qwen3-32b", model_provider="groq", api_key=api_key)
             except Exception as e:
                 print(f"Failed to initialize OpenAI LLM: {e}")
         
