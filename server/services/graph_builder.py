@@ -128,4 +128,4 @@ class GraphBuilder:
         """Update the retriever for all future graphs"""
         self.retriever = retriever
         # Clear existing graphs so they get recreated with new retriever
-        self.session_graphs.clear() 
+        self.session_graphs.clear()
