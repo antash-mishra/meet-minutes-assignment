@@ -2,7 +2,7 @@
 
 A full-stack web application that allows users to upload insurance policy documents and ask questions using Retrieval-Augmented Generation (RAG) technology.
 
-## 🚀 Features
+## Features
 
 ### Frontend (React + TypeScript)
 - **Document Upload**: Drag-and-drop interface for PDF/TXT files
@@ -16,10 +16,10 @@ A full-stack web application that allows users to upload insurance policy docume
 - **Smart Chunking**: RecursiveCharacterTextSplitter for optimal text segmentation
 - **Vector Search**: LangChain FAISS integration with persistent storage
 - **RAG Pipeline**: LangGraph workflows with conversation memory and session management
-- **LLM Integration**: Groq-hosted Qwen (primary) + OpenAI GPT-4o-mini (fallback)
+- **LLM Integration**: Groq-hosted Llama (primary) + OpenAI GPT-4o-mini (fallback)
 - **RESTful API**: Well-documented endpoints with automatic docs
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Frontend (React)     →     Backend (FastAPI + LangGraph)     →     Vector DB (FAISS)
@@ -29,13 +29,13 @@ Frontend (React)     →     Backend (FastAPI + LangGraph)     →     Vector DB
 - Sources Display    →     - Groq Qwen LLM + OpenAI Fallback →     - Similarity Search + LLM
 ```
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **Node.js** 16+ and npm
 - **Python** 3.10+
 - **Git**
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### 1. Clone the Repository
 
@@ -79,7 +79,7 @@ cd frontend
 npm install
 ```
 
-## 🚀 Running the Application
+## Running the Application
 
 ### Start the Backend
 
@@ -106,7 +106,7 @@ npm start
 
 The frontend will be available at `http://localhost:3000`
 
-## 📚 API Documentation
+## API Documentation
 
 Once the backend is running, you can access:
 
@@ -114,7 +114,7 @@ Once the backend is running, you can access:
 - **ReDoc**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 meet-minutes/
