@@ -17,10 +17,13 @@ class Config:
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Default to False for production
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000,https://meet-minutes-frontend.netlify.app").split(",")
+    
+    # Allow all origins in production if ALLOW_ALL_ORIGINS is set
+    ALLOW_ALL_ORIGINS = os.getenv("ALLOW_ALL_ORIGINS", "False").lower() == "true"
     
     # RAG Configuration
-    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-large-en-v1.5")
+    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
     CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 1000))
     CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 200))
     VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", "vector_store")
@@ -32,4 +35,6 @@ class Config:
     @classmethod
     def get_cors_origins(cls):
         """Get CORS origins as a list"""
+        if cls.ALLOW_ALL_ORIGINS:
+            return ["*"]
         return [origin.strip() for origin in cls.CORS_ORIGINS] 

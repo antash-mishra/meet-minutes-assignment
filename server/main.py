@@ -35,7 +35,7 @@ document_processor = DocumentProcessor(
 rag_service = RAGService(
     embedding_model=Config.EMBEDDING_MODEL,
     vector_db_path=Config.VECTOR_DB_PATH,
-    api_key=Config.GROQ_API_KEY
+    groq_api_key=Config.GROQ_API_KEY
 )
 
 # Storage directories

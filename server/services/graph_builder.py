@@ -124,41 +124,8 @@ class GraphBuilder:
             print(f"Created new RAG graph for session: {session_id}")
         return self.session_graphs[session_id]
     
-    def clear_session_graph(self, session_id: str):
-        """Clear LangGraph instance for a specific session"""
-        if session_id in self.session_graphs:
-            del self.session_graphs[session_id]
-            # Clear checkpointed state
-            try:
-                config = {"configurable": {"thread_id": session_id}}
-                self.memory_saver.get(config) # Check if exists before deleting
-                # This part of LangGraph API is a bit tricky, might need adjustment
-                # For in-memory, just clearing the graph instance might be enough
-                # For persistent storage, you'd call a delete method.
-                print(f"Cleared checkpointed state for session: {session_id}")
-            except Exception as e:
-                # It's okay if it fails (e.g., session never had a checkpoint)
-                print(f"Could not clear checkpoint for session {session_id} (may not exist): {e}")
-
-    
-    def get_active_sessions(self) -> List[str]:
-        """Get list of active session graph IDs"""
-        return list(self.session_graphs.keys())
-    
     def update_retriever(self, retriever):
         """Update the retriever for all future graphs"""
         self.retriever = retriever
         # Clear existing graphs so they get recreated with new retriever
-        self.session_graphs.clear()
-    
-    def get_session_history(self, session_id: str) -> List[Tuple[str, str]]:
-        """Get conversation history from LangGraph checkpoint"""
-        try:
-            # Get the latest checkpoint for this session
-            config = {"configurable": {"thread_id": session_id}}
-            checkpoint = self.memory_saver.get(config)
-            if checkpoint and "channel_values" in checkpoint and "chat_history" in checkpoint["channel_values"]:
-                return checkpoint["channel_values"]["chat_history"]
-        except Exception as e:
-            print(f"Error getting session history for {session_id}: {e}")
-        return [] 
+        self.session_graphs.clear() 

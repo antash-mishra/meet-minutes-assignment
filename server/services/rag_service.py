@@ -18,23 +18,50 @@ class RAGService:
     def __init__(self, 
                  embedding_model: str = "Qwen/Qwen3-Embedding-4B",
                  vector_db_path: str = "vector_store",
-                 api_key: str = None):
+                 openai_api_key: str = None,
+                 groq_api_key: str = None):
         
         # Initialize components
         self.vector_store_manager = VectorStoreManager(embedding_model, vector_db_path)
         
-        # Initialize OpenAI LLM
-        # (Assuming ChatOpenAI is imported or handled within GraphBuilder)
+        # Initialize LLM (try Groq first, fallback to OpenAI)
         import os
         
-        api_key = api_key or os.getenv("GROQ_API_KEY")
-        self.llm = None
-        if api_key:
-            try:
-                self.llm = init_chat_model("qwen/qwen3-32b", model_provider="groq", api_key=api_key)
-            except Exception as e:
-                print(f"Failed to initialize OpenAI LLM: {e}")
+        groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+        openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         
+        self.llm = None
+        
+        # Try Groq first
+        if groq_api_key:
+            try:
+                from langchain_groq import ChatGroq
+                self.llm = ChatGroq(
+                    model="meta-llama/llama-4-scout-17b-16e-instruct",
+                    temperature=0.3,
+                    max_tokens=512,
+                    api_key=groq_api_key
+                )
+                print("✅ Initialized Groq LLM successfully")
+            except Exception as e:
+                print(f"❌ Failed to initialize Groq LLM: {e}")
+        
+        # Fallback to OpenAI
+        if not self.llm and openai_api_key:
+            try:
+                self.llm =  ChatOpenAI(
+                    model="gpt-4o-mini",
+                    temperature=0.3,
+                    max_tokens=512,
+                    api_key=openai_api_key
+                )
+                print("✅ Initialized OpenAI LLM successfully")
+            except Exception as e:
+                print(f"❌ Failed to initialize OpenAI LLM: {e}")
+        
+        if not self.llm:
+            print("⚠️  No LLM initialized. Set GROQ_API_KEY or OPENAI_API_KEY environment variable.")
+         
         # Initialize graph builder
         self.graph_builder = GraphBuilder(self.llm)
         self.is_initialized = False
@@ -64,10 +91,6 @@ class RAGService:
         """Access to document metadata"""
         return self.vector_store_manager.documents
     
-    async def clear_session(self, session_id: str):
-        """Clear conversation history for a specific session"""
-        self.graph_builder.clear_session_graph(session_id)
-    
     async def add_document(self, document_id: str, chunks: List[Dict], filename: str):
         """Add a document's chunks to the vector store"""
         await self.vector_store_manager.add_document(document_id, chunks, filename)
@@ -84,7 +107,7 @@ class RAGService:
         try:
             if not self.llm or not self.vector_store_manager.has_documents():
                 raise Exception(
-                    "RAG service is not ready. Ensure documents are uploaded and OpenAI API key is configured."
+                    "RAG service is not ready. Ensure documents are uploaded and either GROQ_API_KEY or OPENAI_API_KEY is configured."
                 )
 
             # Get the session-specific graph
@@ -119,12 +142,6 @@ class RAGService:
             print(f"Error generating answer with graph: {str(e)}")
             raise
             
-    # Session management methods
-    @property
-    def session_graphs(self):
-        """Access to session graphs for backward compatibility"""
-        return self.graph_builder.session_graphs
-    
     def has_documents(self) -> bool:
         """Check if any documents are loaded"""
         return self.vector_store_manager.has_documents()
@@ -139,4 +156,4 @@ class RAGService:
         
         # Update graph builder with new retriever after deletion
         if self.vector_store_manager.retriever:
-            self.graph_builder.update_retriever(self.vector_store_manager.retriever) 
+            self.graph_builder.update_retriever(self.vector_store_manager.retriever)
