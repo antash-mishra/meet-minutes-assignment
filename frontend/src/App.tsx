@@ -259,10 +259,13 @@ function App() {
   };
 
   return (
-    <div className="h-screen lg:h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - env(safe-area-inset-bottom))' }}>
+    <div
+      className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col"
+      style={{ minHeight: '100dvh' }}
+    >
       <Header />
       
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative" style={{ height: '100%' }}>
         {/* Mobile Sidebar Overlay */}
         {isMobileSidebarOpen && (
           <div 
@@ -293,7 +296,7 @@ function App() {
             <DocumentUpload onUpload={handleDocumentUpload} />
           </div>
           
-          <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hidden">
+          <div className="flex-1 overflow-y-auto">
             <DocumentList 
               documents={appState.documents} 
               onDeleteDocument={handleDeleteDocument}
@@ -304,7 +307,7 @@ function App() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile Header with Menu Button */}
-          <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
               className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -316,7 +319,7 @@ function App() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="bg-white border-b border-gray-200 px-4 lg:px-6 py-3">
+          <div className="bg-white border-b border-gray-200 px-4 lg:px-6 py-3 flex-shrink-0">
             <nav className="flex space-x-4 lg:space-x-8">
               <button
                 onClick={() => handleTabChange('chat')}
@@ -349,7 +352,7 @@ function App() {
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
             {appState.currentTab === 'chat' ? (
               <ChatInterface
                 messages={appState.messages}

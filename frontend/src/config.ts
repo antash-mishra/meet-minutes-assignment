@@ -9,9 +9,7 @@ export const API_CONFIG = {
     UPLOAD: '/upload',
     CHAT: '/chat',
     DOCUMENT_STATUS: (id: string) => `/documents/${id}/status`,
-    DELETE_DOCUMENT: (id: string) => `/documents/${id}`,
-    CLEAR_SESSION: (sessionId: string) => `/chat/sessions/${sessionId}`,
-    LIST_SESSIONS: '/chat/sessions'
+    DELETE_DOCUMENT: (id: string) => `/documents/${id}`
   }
 } as const;
 

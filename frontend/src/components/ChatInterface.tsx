@@ -83,7 +83,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const suggestedQuestions = [
-    "What is the deductible for flood damage?",
     "What are the coverage limits for personal property?",
     "How do I file a claim?",
     "What exclusions are listed in my policy?",
@@ -128,7 +127,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-white to-gray-50 overflow-hidden">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 touch-pan-y scrollbar-hidden max-w-full">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 touch-pan-y scrollbar-hidden max-w-full pb-4">
         {messages.length === 0 ? (
           <div className="text-center py-8 lg:py-12">
             <div className="relative mb-6">
@@ -219,70 +218,51 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg w-full overflow-hidden">
                                   <div className="flex items-center space-x-2 mb-2">
                                     {HiLightBulb({ className: "w-4 h-4 text-amber-600" }) as React.ReactElement}
-                                    <span className="text-xs font-semibold text-amber-800">AI Thinking Process</span>
+                                    <span className="text-sm font-medium text-amber-800">AI Reasoning Process</span>
                                   </div>
-                                  <p className="text-xs text-amber-900 leading-relaxed italic whitespace-pre-wrap" style={{ wordBreak: 'normal', overflowWrap: 'break-word', hyphens: 'auto' }}>
+                                  <div className="text-sm text-amber-700 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
                                     {thinking}
-                                  </p>
+                                  </div>
                                 </div>
                               )}
                             </div>
                           )}
                           
-                          {/* Main Content */}
-                    <div
-                      className={`p-2 sm:p-3 md:p-4 lg:p-5 rounded-2xl shadow-sm w-full overflow-hidden ${
-                        message.type === 'user'
-                          ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'
-                          : 'bg-white border border-gray-200 shadow-md'
-                      }`}
-                    >
-                      <p className={`whitespace-pre-wrap leading-relaxed ${
-                        message.type === 'user' ? 'text-white' : 'text-gray-900'
-                      } text-sm sm:text-base`} 
-                      style={{ 
-                        wordBreak: 'normal', 
-                        overflowWrap: 'break-word', 
-                        hyphens: 'auto',
-                        wordSpacing: 'normal', 
-                        letterSpacing: 'normal',
-                        textAlign: 'left'
-                      }}>
-                        {formatTextForMobile(message.type === 'user' ? message.content : mainContent)}
-                      </p>
-                      
-                      {message.sources && message.sources.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-gray-100 w-full overflow-hidden">
-                          <p className="text-xs font-semibold text-gray-600 mb-3 flex items-center">
-                            {HiDocumentText({ className: "w-3 h-3 mr-1" }) as React.ReactElement}
-                            Sources ({message.sources.length}):
-                          </p>
-                          <div className="space-y-2">
-                            {message.sources.map((source, index) => (
-                              <div
-                                key={source.id}
-                                className="text-xs text-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 p-2 sm:p-3 rounded-lg border border-gray-200 w-full overflow-hidden"
-                              >
-                                <div className="flex items-start justify-between flex-wrap gap-2">
-                                  <span className="font-semibold text-gray-800 break-words flex-1 min-w-0">{source.documentName}</span>
-                                  {source.relevanceScore && (
-                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0">
-                                      {Math.round(source.relevanceScore * 100)}%
-                                    </span>
+                          {/* Main Message Content */}
+                          <div className={`p-3 sm:p-4 lg:p-5 rounded-2xl shadow-md ${
+                            message.type === 'user'
+                              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'
+                              : 'bg-white border border-gray-200'
+                          }`}>
+                            <div className={`leading-relaxed break-words overflow-wrap-anywhere ${
+                              message.type === 'user' ? 'text-white' : 'text-gray-800'
+                            }`}>
+                              {formatTextForMobile(mainContent)}
+                            </div>
+                            
+                            {/* Sources for Assistant Messages */}
+                            {message.sources && message.sources.length > 0 && message.type === 'assistant' && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  {HiDocumentText({ className: "w-4 h-4 text-gray-500" }) as React.ReactElement}
+                                  <span className="text-sm font-medium text-gray-700">Sources ({message.sources.length})</span>
+                                </div>
+                                <div className="space-y-2">
+                                  {message.sources.slice(0, 3).map((source, index) => (
+                                    <div key={index} className="text-xs text-gray-600 bg-gray-50 rounded p-2">
+                                      <div className="font-medium">{source.documentName}</div>
+                                      <div className="text-gray-500 truncate">{source.content}</div>
+                                    </div>
+                                  ))}
+                                  {message.sources.length > 3 && (
+                                    <div className="text-xs text-gray-500">
+                                      +{message.sources.length - 3} more sources
+                                    </div>
                                   )}
                                 </div>
-                                {source.page && <div className="text-gray-500 mt-1">Page {source.page}</div>}
-                                {source.content && (
-                                  <div className="text-gray-600 mt-2 break-words overflow-wrap-anywhere text-xs">
-                                    {source.content}
-                                  </div>
-                                )}
                               </div>
-                            ))}
+                            )}
                           </div>
-                        </div>
-                      )}
-                    </div>
                         </>
                       );
                     })()}
@@ -324,13 +304,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white p-4 lg:p-6">
+      <div className="border-t border-gray-200 bg-white p-4 lg:p-6 flex-shrink-0">
         <form onSubmit={handleSubmit} className="flex space-x-3 lg:space-x-4">
           <div className="flex-1 relative">
             <textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask a question about your documents..."
+              placeholder="Ask Here"
               rows={1}
               className="w-full px-4 py-3 lg:px-5 lg:py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none overflow-hidden shadow-sm transition-all duration-200 placeholder-gray-400"
               onKeyDown={(e) => {
